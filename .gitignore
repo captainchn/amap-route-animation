@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Generated route data (regenerate on demand)
+route.json
+
+# Generated render page
+web/index.html
+
+# Captured frames & output video (regenerate on demand)
+frames/
+output/
+
+# macOS
+.DS_Store

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Amap Route Growth Animation</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body, #container { width:100%; height:100%; overflow:hidden; background:#0c1220; }
+  #container { position:absolute; inset:0; }
+  .node-label {
+    position:relative; z-index:90;
+    color:#fff; font:600 13px/-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    padding:4px 11px; border-radius:20px; white-space:nowrap;
+    box-shadow:0 4px 14px rgba(0,0,0,.35);
+  }
+  .node-label.start { background:rgba(34,180,85,.92); }
+  .node-label.end   { background:rgba(224,69,58,.92); }
+</style>
+</head>
+<body>
+<div id="container"></div>
+<script src="https://webapi.amap.com/maps?v=2.0&key=__AMAP_KEY__"></script>
+<script>
+window.__ROUTE = __ROUTE_JSON__;
+</script>
+<script>
+const R = window.__ROUTE;
+const pts = Array.isArray(R) ? R : R.points;
+const startLabel = (Array.isArray(R) ? null : R.start_label) || '起点';
+const endLabel = (Array.isArray(R) ? null : R.end_label) || '终点';
+let map, growLine, carMarker, carEl;
+let total, seg;
+
+function distKm(a,b){
+  const R=6371, d2r=Math.PI/180;
+  const la1=a[1]*d2r, la2=b[1]*d2r, dLa=(b[1]-a[1])*d2r, dLo=(b[0]-a[0])*d2r;
+  const h=Math.sin(dLa/2)**2 + Math.cos(la1)*Math.cos(la2)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+
+function headingAt(i){
+  i=Math.max(0,Math.min(i,pts.length-2));
+  const a=pts[i], b=pts[i+1];
+  const dx=(b[0]-a[0])*Math.cos(a[1]*Math.PI/180);
+  const dy=b[1]-a[1];
+  let h=Math.atan2(dx,dy)*180/Math.PI;
+  if(h<0)h+=360;
+  return h;
+}
+
+function buildGeo(){
+  seg=[0];
+  for(let i=1;i<pts.length;i++) seg[i]=seg[i-1]+distKm(pts[i-1],pts[i]);
+  total=seg[pts.length-1];
+}
+
+function pointAt(t){
+  const target=t*total;
+  let i=0;
+  while(i<pts.length-2 && seg[i+1]<target) i++;
+  const dSeg=seg[i+1]-seg[i]||1e-9;
+  const f=Math.max(0,Math.min(1,(target-seg[i])/dSeg));
+  return {lng:pts[i][0]+(pts[i+1][0]-pts[i][0])*f, lat:pts[i][1]+(pts[i+1][1]-pts[i][1])*f, i:i};
+}
+
+function label(text, cls, offsetY){
+  const d=document.createElement('div');
+  d.className='node-label '+cls;
+  d.textContent=text;
+  return new AMap.Marker({position:pts[0], content:d, anchor:'center', offset:new AMap.Pixel(0, offsetY)});
+}
+
+function init(){
+  buildGeo();
+
+  const sat=new AMap.TileLayer.Satellite();
+  const road=new AMap.TileLayer.RoadNet();
+  map=new AMap.Map('container',{layers:[sat,road],zoom:11});
+
+  const full=new AMap.Polyline({path:pts, strokeColor:'#6b7a88', strokeOpacity:.55, strokeWeight:11, lineJoin:'round', lineCap:'round'});
+  growLine=new AMap.Polyline({path:[pts[0],pts[0]], strokeColor:'#22c55e', strokeOpacity:.95, strokeWeight:13, lineJoin:'round', lineCap:'round'});
+  map.add([full,growLine]);
+
+  // car marker: SVG arrow pointing north, rotated by heading
+  carEl=document.createElement('div');
+  carEl.innerHTML='<svg width="34" height="34" viewBox="0 0 24 24"><path d="M12 2 L20 21 L12 16 L4 21 Z" fill="#ff4d3a" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="2.4" fill="#fff"/></svg>';
+  carEl.style.transformOrigin='center';
+  carMarker=new AMap.Marker({position:pts[0], content:carEl, anchor:'center'});
+
+  const startL=label(startLabel,'start',26);
+  startL.setPosition(pts[0]);
+  const endL=label(endLabel,'end',-26);
+  endL.setPosition(pts[pts.length-1]);
+
+  map.add([carMarker, startL, endL]);
+  map.setFitView([full],false,[90,90,90,90]);
+
+  window.__mapReady=true;
+  window.setProgress(0);
+}
+
+function ease(t){
+  return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2, 2)/2;
+}
+
+window.setProgress=function(p){
+  p=ease(Math.max(0,Math.min(1,p)));
+  const pos=pointAt(p);
+  const gp=pts.slice(0,pos.i+1);
+  if(pos.i<pts.length-1) gp.push([pos.lng,pos.lat]);
+  growLine.setPath(gp);
+  carMarker.setPosition([pos.lng,pos.lat]);
+  carEl.style.transform='rotate('+headingAt(pos.i)+'deg)';
+  return p;
+};
+
+init();
+</script>
+</body>
+</html>

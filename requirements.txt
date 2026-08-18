@@ -1,0 +1,8 @@
+# Python dependencies for the capture step.
+#
+# Install with:
+#   pip install -r requirements.txt
+#   python -m playwright install chromium      # downloads the headless browser
+#
+# The other steps (fetch_route, prepare_web, encode) use only the stdlib + ffmpeg.
+playwright>=1.40
