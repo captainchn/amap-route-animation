@@ -8,8 +8,9 @@ Turn any **Amap (高德地图)** driving route into a **route-growth animation v
 
 Here is a real output — the 51.8 km drive from **普洱市 to 普洱太阳河森林公园** (Pu'er, Yunnan), rendered on Amap satellite imagery at 1080p / 15 s:
 
-<video src="demo/puer_taiyanghe_route_growth.mp4" controls width="720"></video>
+<video src="https://github.com/captainchn/amap-route-animation/raw/main/demo/puer_taiyanghe_route_growth.mp4" controls width="720"></video>
 
+> ⚠️ 内嵌播放器依赖 `raw.githubusercontent.com`（GitHub 的 raw CDN），国内浏览器需能访问该域名。
 > Download: [demo/puer_taiyanghe_route_growth.mp4](demo/puer_taiyanghe_route_growth.mp4)
 
 ## ✨ What it produces
