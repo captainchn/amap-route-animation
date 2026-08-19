@@ -2,19 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>Amap Route Growth Animation</title>
+<title>高德路线动画 · 普洱→太阳河</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body, #container { width:100%; height:100%; overflow:hidden; background:#0c1220; }
   #container { position:absolute; inset:0; }
-  .node-label {
-    position:relative; z-index:90;
-    color:#fff; font:600 13px/-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
-    padding:4px 11px; border-radius:20px; white-space:nowrap;
-    box-shadow:0 4px 14px rgba(0,0,0,.35);
-  }
-  .node-label.start { background:rgba(34,180,85,.92); }
-  .node-label.end   { background:rgba(224,69,58,.92); }
 </style>
 </head>
 <body>
@@ -26,8 +18,6 @@ window.__ROUTE = __ROUTE_JSON__;
 <script>
 const R = window.__ROUTE;
 const pts = Array.isArray(R) ? R : R.points;
-const startLabel = (Array.isArray(R) ? null : R.start_label) || '起点';
-const endLabel = (Array.isArray(R) ? null : R.end_label) || '终点';
 let map, growLine, carMarker, carEl;
 let total, seg;
 
@@ -63,19 +53,11 @@ function pointAt(t){
   return {lng:pts[i][0]+(pts[i+1][0]-pts[i][0])*f, lat:pts[i][1]+(pts[i+1][1]-pts[i][1])*f, i:i};
 }
 
-function label(text, cls, offsetY){
-  const d=document.createElement('div');
-  d.className='node-label '+cls;
-  d.textContent=text;
-  return new AMap.Marker({position:pts[0], content:d, anchor:'center', offset:new AMap.Pixel(0, offsetY)});
-}
-
 function init(){
   buildGeo();
 
   const sat=new AMap.TileLayer.Satellite();
-  const road=new AMap.TileLayer.RoadNet();
-  map=new AMap.Map('container',{layers:[sat,road],zoom:11});
+  map=new AMap.Map('container',{layers:[sat],zoom:11,features:['bg']});
 
   const full=new AMap.Polyline({path:pts, strokeColor:'#6b7a88', strokeOpacity:.55, strokeWeight:11, lineJoin:'round', lineCap:'round'});
   growLine=new AMap.Polyline({path:[pts[0],pts[0]], strokeColor:'#22c55e', strokeOpacity:.95, strokeWeight:13, lineJoin:'round', lineCap:'round'});
@@ -87,12 +69,7 @@ function init(){
   carEl.style.transformOrigin='center';
   carMarker=new AMap.Marker({position:pts[0], content:carEl, anchor:'center'});
 
-  const startL=label(startLabel,'start',26);
-  startL.setPosition(pts[0]);
-  const endL=label(endLabel,'end',-26);
-  endL.setPosition(pts[pts.length-1]);
-
-  map.add([carMarker, startL, endL]);
+  map.add(carMarker);
   map.setFitView([full],false,[90,90,90,90]);
 
   window.__mapReady=true;

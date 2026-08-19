@@ -21,8 +21,10 @@ A **.mp4** of the route with:
 - ⬜ **Gray full-route ghost** — shows the whole path up front
 - 🟢 **Route line grows** behind the car, frame by frame
 - 🚗 **Car arrow** drives from start to finish, rotating with the road's heading
-- 🏁 **Start / End labels**
 - ⏱️ **Ease-in-out pacing** — slow start, fast middle, slow finish
+
+The map is kept deliberately clean — no road names, POI labels, or start/end markers.
+If you want start/end labels, add `AMap.Marker`s yourself (see Customization).
 
 ## 🧰 Features
 
@@ -83,9 +85,9 @@ Edit `web/render_template.html`:
 |---|---|
 | Route / line colors & width | `strokeColor` / `strokeWeight` on the two polylines |
 | Car icon | `carEl.innerHTML` (any SVG) |
-| Start/end label style | `.node-label` CSS |
+| Add start/end markers | create `AMap.Marker`s and `map.add(...)` them (the demo omits them) |
 | Easing curve | `function ease` |
-| Map style (satellite → normal) | `layers: [sat, road]` in `AMap.Map` |
+| Map style (satellite → normal) | `layers` in `AMap.Map` (currently satellite-only, annotations hidden via `features:['bg']`) |
 
 ## 📁 Project layout
 
